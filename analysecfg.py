@@ -69,6 +69,12 @@ class CFG:
             line = cfp[ntp + i + 1].strip()
             vt = np.fromstring(line, sep = ' ')
             if direct:
+                # strip
+                for i in range(3):
+                    if vt[i] < 0:
+                        vt[i] += 1
+                    if vt[i] >= 1:
+                        vt[i] -= 1
                 self.pos.append(np.dot(vt, self.cell))
             else:
                 self.pos.append(vt)
@@ -84,12 +90,19 @@ class CFG:
         fp.write(" Supercell\n")
         for i in range(3):
             fp.write("        " + " ".join(f'{j:.10f}' for j in self.cell[i]) + '\n')
-        fp.write(" AtomData:  id type       cartes_x      cartes_y      cartes_z           fx          fy          fz\n")
-        for i in range(self.size):
-            fp.write("            " + str(i+1) + "    " + str(self.types[i]))
-            fp.write("   " + "   ".join(f'{j:.10f}' for j in self.pos[i]))
-            fp.write("   " + "   ".join(f'{j:.10f}' for j in self.force[i]))
-            fp.write('\n')
+        if self.have_forces:
+            fp.write(" AtomData:  id type       cartes_x      cartes_y      cartes_z           fx          fy          fz\n")
+            for i in range(self.size):
+                fp.write("            " + str(i+1) + "    " + str(self.types[i]))
+                fp.write("   " + "   ".join(f'{j:.10f}' for j in self.pos[i]))
+                fp.write("   " + "   ".join(f'{j:.10f}' for j in self.force[i]))
+                fp.write('\n')
+        else:
+            fp.write(" AtomData:  id type       cartes_x      cartes_y      cartes_z\n")
+            for i in range(self.size):
+                fp.write("            " + str(i+1) + "    " + str(self.types[i]))
+                fp.write("   " + "   ".join(f'{j:.10f}' for j in self.pos[i]))
+                fp.write('\n')
         if self.have_energy:
             fp.write(" Energy\n")
             if fenergy:
